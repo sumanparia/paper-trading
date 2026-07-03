@@ -26,9 +26,8 @@ class DataFeedService:
                         self._cache.update(fresh_data)
                         print(f"[DataFeed] Updated {len(fresh_data)} quotes.")
                         
-                        # ---> ADD THIS LINE <---
                         # Pass the fresh data to the order monitor to check for SL triggers
-                        order_monitor_service.check_triggers(self._cache)
+                        await order_monitor_service.check_triggers(self._cache)
                         
                     except Exception as e:
                         print(f"[DataFeed] Error fetching: {e}")

@@ -39,17 +39,10 @@ async def db_session():
     # Create tables for this specific test
     async with test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-    
+
     async with TestSessionLocal() as session:
         yield session
-    
+
     # Drop tables after test to keep it clean
     async with test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
-
-# Override the dependency in FastAPI
-@pytest.fixture(scope="function")
-def override_get_db(db_session):
-    async def _override():
-        yield db_session
-    return _override

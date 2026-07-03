@@ -10,11 +10,11 @@ router = APIRouter(prefix="/orders", tags=["Orders"])
 
 @router.post("/place", response_model=OrderResponse)
 async def place_order(
-    request: PlaceOrderRequest, 
+    request: PlaceOrderRequest,
     db: AsyncSession = Depends(get_db)
 ):
-    if request.order_type in ["LIMIT", "SL"] and request.price is None:
-        raise HTTPException(status_code=400, detail="Price is required for LIMIT/SL orders")
+    if request.order_type == "LIMIT" and request.price is None:
+        raise HTTPException(status_code=400, detail="Price is required for LIMIT orders")
     if request.order_type in ["SL", "SL-M"] and request.trigger_price is None:
         raise HTTPException(status_code=400, detail="Trigger price is required for SL/SL-M orders")
 
@@ -22,17 +22,20 @@ async def place_order(
     fill_price = None
     status = "PENDING"
 
-    # --- MARKET ORDER: Direct Yahoo Fetch ---
+    # --- MARKET ORDER: Direct Provider Fetch ---
     if request.order_type == "MARKET":
         try:
-            # This will try Yahoo, and instantly fall back to Finnhub if Yahoo fails
             live_quote = await quote_service.get_live_quote_now(request.instrument_token)
-        
+
             if not live_quote or live_quote.ltp <= 0:
                 raise HTTPException(status_code=503, detail="All data providers failed to fetch price. Order rejected.")
-            
+
             fill_price = live_quote.ltp
             status = "FILLED"
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(status_code=503, detail=f"Failed to fetch price: {str(e)}")
 
     # --- LIMIT ORDER ---
     elif request.order_type == "LIMIT":

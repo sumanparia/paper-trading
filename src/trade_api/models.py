@@ -84,6 +84,7 @@ class OrderResponse(BaseModel):
     order_id: str
     status: str = "ACCEPTED"
     message: Optional[str] = None
+    average_price: Optional[float] = None
 
 # Portfolio Models
 class Holding(BaseModel):
