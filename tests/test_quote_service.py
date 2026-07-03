@@ -1,6 +1,6 @@
 import pytest
 from trade_api.services.quote_service import QuoteService
-from tests.conftest import MockSuccessProvider, MockFailingProvider
+from conftest import MockSuccessProvider, MockFailingProvider
 
 @pytest.mark.asyncio
 async def test_provider_pool_fallback_mechanism():
